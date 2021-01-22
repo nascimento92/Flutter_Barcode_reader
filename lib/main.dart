@@ -26,7 +26,7 @@ class _HomeState extends State<Home> {
           FlatButton(
             child: Text("Scan"),
             onPressed: ()=> _scan(),
-            color: Colors.red,
+            color: Colors.green,
           ),
           Container(
             alignment: Alignment.center,
