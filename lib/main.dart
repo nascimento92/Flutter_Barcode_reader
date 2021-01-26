@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
@@ -80,7 +81,7 @@ class _HomeState extends State<Home> {
     if(codbar !="-1"){
       await Login();
       await getProduto();
-      //await Logout();
+      await Logout();
     }
 
   }
@@ -110,10 +111,12 @@ class _HomeState extends State<Home> {
 
   Future Logout() async {
     await http.post(urlLogout, headers: {"Cookie": "JSESSIONID=$_jsessionid"});
+    /*
     setState(() {
       _jsessionid = "";
       _data="";
     });
+    */
   }
 
   Future getProduto() async {
@@ -139,6 +142,12 @@ class _HomeState extends State<Home> {
           "http://sankhya.grancoffee.com.br:8180/mge/service.sbr?serviceName=DbExplorerSP.executeQuery&mgeSession=$_jsessionid";
       String body =
           "{\"serviceName\":\"DbExplorerSP.executeQuery\",\"requestBody\":{\"sql\":\"SELECT CODPROD FROM TGFBAR WHERE CODBARRA=\'$_data\' AND ROWNUM=1\"}}";
+
+      var response = await http.post(url,body: body, headers: {"Cookie": "JSESSIONID=$_jsessionid"});
+      var decode = json.decode(response.body);
+      setState(() {
+        _codprod = decode["responseBody"]["rows"][0].toString();
+      });
     }
   }
 }
