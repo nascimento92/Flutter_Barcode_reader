@@ -72,7 +72,8 @@ class _HomeState extends State<Home> {
         "#8B0000", "Cancel", true, ScanMode.BARCODE);
     setState(() {
       if (codbar == "-1") {
-        _data = "Código de Barras inválido!";
+        _data = "Inválido!";
+        Logout();
       } else {
         _data = codbar;
       }
@@ -111,12 +112,6 @@ class _HomeState extends State<Home> {
 
   Future Logout() async {
     await http.post(urlLogout, headers: {"Cookie": "JSESSIONID=$_jsessionid"});
-    /*
-    setState(() {
-      _jsessionid = "";
-      _data="";
-    });
-    */
   }
 
   Future getProduto() async {
@@ -146,7 +141,7 @@ class _HomeState extends State<Home> {
       var response = await http.post(url,body: body, headers: {"Cookie": "JSESSIONID=$_jsessionid"});
       var decode = json.decode(response.body);
       setState(() {
-        _codprod = decode["responseBody"]["rows"][0].toString();
+        _codprod = decode["responseBody"]["rows"][0].toString().replaceAll("[", "").replaceAll("]", "");
       });
     }
   }
