@@ -34,6 +34,7 @@ class _HomeState extends State<Home> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.grey,
+        title: Text("Leitor de Código de Barras"),
         actions: [
           IconButton(icon: Icon(Icons.refresh), onPressed: clean)
         ],
