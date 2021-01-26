@@ -8,6 +8,8 @@ import 'package:xml/xml.dart';
 
 const urlLogin =
     "http://sankhya.grancoffee.com.br:8180/mge/service.sbr?serviceName=MobileLoginSP.login";
+const urlLogout =
+    "http://sankhya.grancoffee.com.br:8180/mge/service.sbr?serviceName=MobileLoginSP.logout";
 
 void main() {
   runApp(MaterialApp(
@@ -23,22 +25,18 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   String _data = "";
-
-  @override
-  void initState() {
-    super.initState();
-    Login();
-  }
+  String _jsessionid = "";
+  String _codprod = "";
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.grey,
-        actions: [IconButton(icon: Icon(Icons.refresh), onPressed: (){
-          var login = Login();
-          print(login);
-        })],
+        actions: [
+          IconButton(icon: Icon(Icons.delete), onPressed: Logout),
+          IconButton(icon: Icon(Icons.refresh), onPressed: Login)
+        ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -55,7 +53,13 @@ class _HomeState extends State<Home> {
               )),
           Container(
             alignment: Alignment.center,
-            child: Text(_data),
+            child: Text("Código de Barras: $_data",
+                style: TextStyle(fontSize: 15.0)),
+          ),
+          Container(
+            padding: EdgeInsets.only(top: 10.0),
+            alignment: Alignment.center,
+            child: Text("Código Produto: $_codprod"),
           )
         ],
       ),
@@ -72,6 +76,13 @@ class _HomeState extends State<Home> {
         _data = codbar;
       }
     });
+
+    if(codbar !="-1"){
+      await Login();
+      await getProduto();
+      //await Logout();
+    }
+
   }
 
   Future<File> _getFile() async {
@@ -79,19 +90,55 @@ class _HomeState extends State<Home> {
     final directory = await getApplicationDocumentsDirectory();
     return File("${directory.path}/data.json");
   }
-}
 
- Login() async {
-  String body = "<serviceRequest>" +
-      "<requestBody>" +
-      "<NOMUSU>GABRIEL</NOMUSU>" +
-      "<INTERNO>gabriel123456</INTERNO>" +
-      "</requestBody>" +
-      "</serviceRequest>";
+  Future Login() async {
+    String body = "<serviceRequest>" +
+        "<requestBody>" +
+        "<NOMUSU>GABRIEL</NOMUSU>" +
+        "<INTERNO>gabriel123456</INTERNO>" +
+        "</requestBody>" +
+        "</serviceRequest>";
 
-  var post = await http.post(urlLogin,body: body);
-  var xmlDocument = XmlDocument.parse(post.body);
-  var where = xmlDocument.findAllElements('jsessionid');
-  var map = where.map((e) => e.text.trim());
-  print("JSessionId: $where");
+    var post = await http.post(urlLogin, body: body);
+    var xmlDocument = XmlDocument.parse(post.body);
+    var where = xmlDocument.findAllElements('jsessionid');
+    var map = where.map((e) => e.text.trim());
+    setState(() {
+      _jsessionid = map.toString().replaceAll("(", "").replaceAll(")", "");
+    });
+  }
+
+  Future Logout() async {
+    await http.post(urlLogout, headers: {"Cookie": "JSESSIONID=$_jsessionid"});
+    setState(() {
+      _jsessionid = "";
+      _data="";
+    });
+  }
+
+  Future getProduto() async {
+    print(_jsessionid);
+    if (_jsessionid.isEmpty) {
+      showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text("ERRO"),
+              content: Text("Jsession Inválida!"),
+              actions: [
+                FlatButton(
+                    child: Text("Fechar"),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    })
+              ],
+            );
+          });
+    }else{
+      String url =
+          "http://sankhya.grancoffee.com.br:8180/mge/service.sbr?serviceName=DbExplorerSP.executeQuery&mgeSession=$_jsessionid";
+      String body =
+          "{\"serviceName\":\"DbExplorerSP.executeQuery\",\"requestBody\":{\"sql\":\"SELECT CODPROD FROM TGFBAR WHERE CODBARRA=\'$_data\' AND ROWNUM=1\"}}";
+    }
+  }
 }
