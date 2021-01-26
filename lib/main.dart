@@ -35,8 +35,7 @@ class _HomeState extends State<Home> {
       appBar: AppBar(
         backgroundColor: Colors.grey,
         actions: [
-          IconButton(icon: Icon(Icons.delete), onPressed: Logout),
-          IconButton(icon: Icon(Icons.refresh), onPressed: Login)
+          IconButton(icon: Icon(Icons.refresh), onPressed: clean)
         ],
       ),
       body: Column(
@@ -53,14 +52,15 @@ class _HomeState extends State<Home> {
                 color: Colors.grey,
               )),
           Container(
-            alignment: Alignment.center,
-            child: Text("Código de Barras: $_data",
-                style: TextStyle(fontSize: 15.0)),
-          ),
-          Container(
             padding: EdgeInsets.only(top: 10.0),
             alignment: Alignment.center,
-            child: Text("Código Produto: $_codprod"),
+            child: Text("Código de Barras: $_data",
+                style: TextStyle(fontSize: 20.0)),
+          ),
+          Container(
+            padding: EdgeInsets.only(top: 20.0),
+            alignment: Alignment.center,
+            child: Text("Código Produto: $_codprod", style: TextStyle(fontSize: 20.0)),
           )
         ],
       ),
@@ -149,5 +149,12 @@ class _HomeState extends State<Home> {
         _codprod = decode["responseBody"]["rows"][0].toString();
       });
     }
+  }
+
+  clean(){
+    setState(() {
+      _data = "";
+      _codprod = "";
+    });
   }
 }
